@@ -7,9 +7,9 @@
 ## Description
 #
 # tl;dr -- Type `e filename` on a remote host via ssh and your local
-#          emacs will open the remote file. Don't have the `e` alias
+#          emacs will open the remote file. Don't have the `e` function
 #          installed on the remote machine? No problem, it will
-#          automatically detect that, install the alias, and then
+#          automatically detect that, install the function, and then
 #          open the file.
 #
 # This script contains instructions for telling a local
@@ -20,13 +20,23 @@
 
 EMACSCLIENT=/usr/local/bin/emacsclient
 
-## Example output for `e file` on remote host (split over two lines for readability)
+## Quick overview of the commands run by this script:
+#
+# Example output for `e filename` on remote host (split over two lines for readability)
 #
 # EMACS_EDIT r_user="hchapman" ssh_conn="192.168.56.1 65406 192.168.56.101 22" \
-# pwd="/home/hchapman" ARGS file
+# pwd="/home/hchapman" ARGS filename
 #
 # Format: EMACS_EDIT shell_variables ARGS filename(s)
 #
+# This runs the following command on your local machine:
+#
+# $ shell_variables /path/to/remote_emacs.sh filename(s)
+#
+# which builds this command (for each filename):
+#
+# $ emacsclient -n /ssh:hchapman@192.168.56.101#22:/home/hchapman/filename
+
 
 ## SECURITY WARNING!!! (and thoughts of a fix)
 #
@@ -42,7 +52,7 @@ EMACSCLIENT=/usr/local/bin/emacsclient
 #     $ shell_variables this_script.sh filename(s)
 #
 #     Worst-case(?) scenario: your angry, just-fired co-worker
-#     manages to install/change the `e` alias on a remote machine
+#     manages to install/change the `e` function on a remote machine
 #     to output this:
 #     EDIT_EMACS rm -rf / ; ARGS filename
 #
@@ -77,13 +87,25 @@ EMACSCLIENT=/usr/local/bin/emacsclient
 # Use xargs and a function to open files rather than a for which may
 # not handle filenames with spaces.
 #
+# The `e` function doesn't work with vagrant VMs because they forward a port on the
+# host machine to the guest. Until we can detect and handle that, replace
+# `$SSH_CONNECTION` above with `_ _ localhost 2222` or whatever port vagrant
+# used. I usually put this in a .bash_aliases file on the VM which all new
+# Ubuntu machines seem to automatically load if it exists.
+#
 #######
 
 ## Instructions:
 
-## Put this function on the remote host (no longer strictly required, read on). This alias
-#  prints a single easily parseable line to the terminal with all of the information needed
-#  to tell Emacs + tramp how to open your remote file.
+## Install the `e` function
+#
+#  This is no longer required unless you have a problem like the vagrant one
+#  mentioned above. The iTerm2 triggers below will now automatically do this
+#  for you.
+#
+#  Put this function on the remote host. This function prints a single easily
+#  parseable line to the terminal with all of the information needed to tell
+#  Emacs + tramp how to open your remote file.
 #
 e() { printf 'EMACS_EDIT r_user="%s" ssh_conn="%s" pwd="%s" ARGS %s\n' $(id -un) "$SSH_CONNECTION" "$(pwd)" "$@"; }
 
@@ -97,20 +119,16 @@ e() { printf 'EMACS_EDIT r_user="%s" ssh_conn="%s" pwd="%s" ARGS %s\n' $(id -un)
 #     action: Send Text...
 #     parameters:  [Paste everything between the horizontal lines below
 #                   especially the trailing newline! Remove the leading
-#                   comments. (explained below)]
+#                   comment characters. (explained below)]
 #----------------------------------------------------------------
 #e() { printf 'EMACS_EDIT r_user="%s" ssh_conn="%s" pwd="%s" ARGS %s\n' $(id -un) "$SSH_CONNECTION" "$(pwd)" "$@"; }
 #!-2
 #
 #----------------------------------------------------------------
 #
-# The second trigger detects the missing `e` command and auto-sends it for you. It adds `!-2` which makes
-# bash re-run the `e filename` command again after setting the alias.
-
-# Note: the function doesn't work with vagrant VMs because they forward a port on the Host machine
-# to the guest. Until we can detect and handle that, replace `$SSH_CONNECTION` above with
-# `_ _ localhost 2222` or whatever port vagrant used. I usually put this in a .bash_aliases
-# file which all new Ubuntu machines seem to automatically load if it exists.
+# The second trigger detects the missing `e` command and auto-sends it for you.
+# It adds `!-2` which makes bash re-run the `e filename` command again after
+# setting the function.
 
 ## Algorithm:
 #
