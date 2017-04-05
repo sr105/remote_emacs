@@ -64,5 +64,8 @@ e() { printf 'EMACS_EDIT r_user="%s" ssh_conn="%s" pwd="%s" ARGS %s\n' $(id -un)
 
 read my_ip my_port their_ip their_port <<< "${ssh_conn}"
 for filename in "$@"; do
-    /usr/local/bin/emacsclient -n "/ssh:${r_user}@${their_ip}#${their_port}:${pwd}/${filename}"
+    if ! [[ "$filename" =~ ^/ ]]; then
+        filename="${pwd}/${filename}"
+    fi
+    /usr/local/bin/emacsclient -n "/ssh:${r_user}@${their_ip}#${their_port}:${filename}"
 done
