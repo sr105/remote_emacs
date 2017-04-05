@@ -25,23 +25,35 @@
 
 ## Instructions:
 
-## Put this function on the remote host
+## Put this alias on the remote host
 #
-e() {
-    printf 'EMACS_EDIT r_user="%s" ssh_conn="%s" pwd="%s" ARGS ' $(id -un) "$SSH_CONNECTION" "$(pwd)"
-    echo "$@" EDIT_EMACS
-}
+alias e="printf 'EMACS_EDIT r_user=\"%s\" ssh_conn=\"%s\" pwd=\"%s\" ARGS %s\n' $(id -un) "$SSH_CONNECTION" \"$(pwd)\""
 
-## Add a trigger to iTerm2 (Profiles -> Advanced -> Edit Triggers):
+## Add these triggers to iTerm2 (Profiles -> Advanced -> Edit Triggers):
 #
-#     regex: ^EMACS_EDIT (.*) ARGS (.*) EDIT_EMACS$
+#     regex: ^EMACS_EDIT (.*) ARGS (.*)$
 #     action: Run Command
 #     parameters: \1 /path/to/__this_script__.sh \2
+#
+#     regex: ^e: command not found$
+#     action: Send Text...
+#     parameters:  [Paste everything between the pipes below
+#                   especially the leading space and trailing newline! (reasoning below)] 
+#     | alias e="printf 'EMACS_EDIT r_user=\"%s\" ssh_conn=\"%s\" pwd=\"%s\" ARGS %s\n' $(id -un) \"$SSH_CONNECTION\" \"$(pwd)\""
+#|
+#
+# The second trigger detects the missing `e` command and auto-sends it for you. It adds a leading
+# space so bash won't add it to the command history. This allows you to hit UP and have the
+# `e filename` command back skipping the alias command.
+
+# Note: the alias doesn't work with vagrant VMs because they forward a port on the Host machine
+# to the guest. Until we can detect and handle that, replace `$SSH_CONNECTION` above with
+# `_ _ localhost 2222`.
 
 ## Example output for `e file` on remote host (split over two lines for readability)
 #
 # EMACS_EDIT r_user="hchapman" ssh_conn="192.168.56.1 65406 192.168.56.101 22" \
-# pwd="/home/hchapman" ARGS file EDIT_EMACS
+# pwd="/home/hchapman" ARGS file
 
 ## Algorithm:
 #
