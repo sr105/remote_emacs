@@ -25,9 +25,9 @@
 
 ## Instructions:
 
-## Put this alias on the remote host
+## Put this function on the remote host
 #
-alias e="printf 'EMACS_EDIT r_user=\"%s\" ssh_conn=\"%s\" pwd=\"%s\" ARGS %s\n' $(id -un) "$SSH_CONNECTION" \"$(pwd)\""
+e() { printf 'EMACS_EDIT r_user="%s" ssh_conn="%s" pwd="%s" ARGS %s\n' $(id -un) "$SSH_CONNECTION" "$(pwd)" "$@"; }
 
 ## Add these triggers to iTerm2 (Profiles -> Advanced -> Edit Triggers):
 #
@@ -39,14 +39,14 @@ alias e="printf 'EMACS_EDIT r_user=\"%s\" ssh_conn=\"%s\" pwd=\"%s\" ARGS %s\n' 
 #     action: Send Text...
 #     parameters:  [Paste everything between the pipes below
 #                   especially the leading space and trailing newline! (reasoning below)] 
-#     | alias e="printf 'EMACS_EDIT r_user=\"%s\" ssh_conn=\"%s\" pwd=\"%s\" ARGS %s\n' $(id -un) \"$SSH_CONNECTION\" \"$(pwd)\""
+#     | e() { printf 'EMACS_EDIT r_user="%s" ssh_conn="%s" pwd="%s" ARGS %s\n' $(id -un) "$SSH_CONNECTION" "$(pwd)" "$@"; }
 #|
 #
 # The second trigger detects the missing `e` command and auto-sends it for you. It adds a leading
 # space so bash won't add it to the command history. This allows you to hit UP and have the
-# `e filename` command back skipping the alias command.
+# `e filename` command back skipping the function definition command.
 
-# Note: the alias doesn't work with vagrant VMs because they forward a port on the Host machine
+# Note: the function doesn't work with vagrant VMs because they forward a port on the Host machine
 # to the guest. Until we can detect and handle that, replace `$SSH_CONNECTION` above with
 # `_ _ localhost 2222`.
 
